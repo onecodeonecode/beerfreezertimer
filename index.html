@@ -1,150 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Beer Freezer Timer</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: blue;
-    color: white;
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beer Freezer Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a frosted, cold look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        :root {
+            --cold-blue: #0A1931;
+            --frosty-cyan: #67E8F9;
+            --light-ice: #F0F9FF;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cold-blue);
+            color: var(--light-ice);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem; /* Reduced body padding */
+        }
+        .portrait-frame {
+            /* Enforces the 9:16 ratio */
+            width: 100%;
+            max-width: 450px; 
+            height: 800px; /* 450 * (16/9) ≈ 800 */
+            
+            background-color: #1f2937; /* Dark background for the frame */
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.7);
+            padding: 1.5rem;
+            overflow-y: auto; /* Allows scrolling for long content (like instructions) */
+            
+            /* Hide the scrollbar for a cleaner look */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .portrait-frame::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
 
-  .screen {
-    width: 100%;
-    max-width: 450px;
-    height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  h1 {
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  #timer {
-    font-size: 80px;
-    text-align: center;
-    margin: 40px 0;
-  }
-
-  .btns {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-
-  button {
-    padding: 12px 22px;
-    font-size: 18px;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
-  }
-
-  .start-btn {
-    background: #00c200;
-    color: white;
-  }
-
-  .reset-btn {
-    background: #e00000;
-    color: white;
-  }
-
-  .instructions {
-    font-size: 15px;
-    line-height: 1.45;
-    margin-top: 10px;
-    max-height: 52vh;
-    overflow-y: auto;
-  }
-</style>
+        .timer-display {
+            font-family: monospace;
+            text-shadow: 0 0 10px rgba(103, 232, 249, 0.6);
+        }
+        .instruction-box {
+            background-color: rgba(255, 255, 255, 0.08); /* Slightly transparent white */
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            transition: all 0.15s ease-in-out;
+        }
+        .btn:hover:enabled {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(103, 232, 249, 0.4);
+        }
+    </style>
 </head>
 <body>
-<div class="screen">
-  <h1>Beer Freezer Timer 🍺❄️</h1>
-  <div id="timer">20:00</div>
 
-  <div class="btns">
-    <button class="start-btn" onclick="startTimer()">Start</button>
-    <button class="reset-btn" onclick="resetTimer()">Reset</button>
-  </div>
+<!-- New 9:16 Portrait Frame Wrapper -->
+<div class="portrait-frame">
+    <header class="text-center mb-6 pt-4">
+        <h1 class="text-4xl font-extrabold text-white mb-1">Beer Freezer Timer</h1>
+        <p class="text-lg font-light text-frosty-cyan"></p>
+    </header>
 
-  <div class="instructions">
-    <h3>Step-by-Step Instructions for Freezing a Beer Bottle in the Freezer 🍺❄️</h3>
-    <p><b>Step 1: The Mission</b><br>
-    Open your freezer like you're entering a top-secret vault. Whisper: “Operation Ice-Cold Brew begins now.”</p>
+    <!-- Timer and Controls -->
+    <div class="bg-gray-800 p-6 rounded-xl shadow-2xl mb-6 flex flex-col items-center">
+        <div id="timer-display" class="timer-display text-7xl font-bold text-frosty-cyan mb-6">20:00</div>
+        
+        <div class="flex space-x-4 w-full justify-center">
+            <button id="start-btn" 
+                    class="btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-green-900/50">
+                START
+            </button>
+            <button id="reset-btn" 
+                    class="btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-red-900/50" 
+                    disabled>
+                RESET
+            </button>
+        </div>
+        
+        <!-- Status Message -->
+        <p id="status-message" class="mt-4 text-lg text-yellow-300 h-6"></p>
+    </div>
 
-    <p><b>Step 2: Clear Space</b><br>
-    Move aside the frozen pizza, mystery Tupperware, and that bag of peas you never use. Your beer deserves VIP space.</p>
-
-    <p><b>Step 3: Place the Beer</b><br>
-    Gently lay your beer in the freezer like it's a newborn. Do NOT toss it.</p>
-
-    <p><b>Step 4: Set the Timer</b><br>
-    Press Start. Because if you don’t, you WILL forget and cause a beer slush explosion.</p>
-
-    <p><b>Step 5: Walk Away</b><br>
-    Say: “I am responsible.” (You’re not. But try.)</p>
-
-    <p><b>Step 6: Fight the Urge</b><br>
-    Do NOT check the beer. This isn't a soufflé.</p>
-
-    <p><b>Step 7: Retrieve on Time</b><br>
-    When the timer ends, sprint like it's the Olympics and save that beer.</p>
-
-    <p><b>Step 8: Celebrate</b><br>
-    Crack open your masterpiece. Achieve Peak Refreshment.</p>
-  </div>
+    <!-- Instructions -->
+    <div class="instruction-box p-5 rounded-xl">
+        <h2 class="text-2xl font-bold text-white mb-4 border-b border-gray-500 pb-2">
+            Beer Freezer Timer Instructions:
+        </h2>
+        
+        <ol class="space-y-3 text-base text-gray-200 list-none pl-0">
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 1: The Mission</strong><br>Open your freezer like you’re entering a top-secret vault. Whisper to yourself: “Operation Ice-Cold Brew begins now.”</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 2: Clear Space</strong><br>Move aside the frozen pizza, month-old mystery Tupperware, and that bag of peas you definitely never use. Your beer deserves VIP freezer real estate.</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 3: Place the Beer</strong><br>Gently lay your beer in the freezer like it’s a newborn baby from a brewery. Do NOT just toss it in—this is beer, not a grenade.</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 4: Set the Timer</strong><br>This is the most important part. Press start on the timer. Because if you don’t, you will 100% forget about it until it becomes a sad, frozen beer-slush explosion.</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 5: Walk Away Confidently</strong><br>Close the freezer door. Pat yourself on the back. Say “I am responsible. I will not forget.” (This is a lie. But try.)</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 6: Fight the URGE</strong><br>Do not open the freezer to “just check.” You’re not inspecting a soufflé. Let the cold do its magic.</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 7: Retrieve on Time</strong><br>When the timer goes off, sprint back like it’s the Olympic finals. Open the freezer and retrieve your perfectly chilled masterpiece. If you forgot the timer… well, enjoy your Beer-Flavored Slushie!</li>
+            <li class="p-2 bg-gray-700/50 rounded-lg shadow-md"><strong class="text-frosty-cyan">Step 8: Celebrate</strong><br>Crack open the beer. Take a sip. Congratulations—you have achieved Peak Refreshment.</li>
+        </ol>
+    </div>
 </div>
 
-<audio id="chime-sound">
-  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg" />
-</audio>
-
 <script>
-  let time = 1200;
-  let countdown;
+    // --- Timer Constants ---
+    const TIME_LIMIT_SECONDS = 20 * 60; // 20 minutes
+    
+    // --- DOM Elements ---
+    const timerDisplay = document.getElementById('timer-display');
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const statusMessage = document.getElementById('status-message');
 
-  function updateDisplay() {
-    let minutes = Math.floor(time / 60);
-    let seconds = time % 60;
-    document.getElementById("timer").textContent =
-      `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  }
+    // --- State Variables ---
+    let timer = null;
+    let remainingTime = TIME_LIMIT_SECONDS;
+    let isRunning = false;
 
-  function startTimer() {
-    if (countdown) return;
-    countdown = setInterval(() => {
-      time--;
-      updateDisplay();
-      if (time <= 0) {
-        clearInterval(countdown);
-        countdown = null;
-        document.getElementById("chime-sound").play();
-      }
-    }, 1000);
-  }
+    // --- Audio Functions (Generates a simple chime using Web Audio API) ---
+    function playChime() {
+        // Prevent multiple simultaneous context creations
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Safety check to ensure the context is running (needed for some browsers)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
 
-  function resetTimer() {
-    clearInterval(countdown);
-    countdown = null;
-    time = 1200;
-    updateDisplay();
-  }
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Set properties for a bright, short chime
+        oscillator.type = 'sine';
+        
+        // Chime sequence (high to low frequency sweep)
+        const now = audioContext.currentTime;
+        
+        // Start volume and frequency
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05);
+        
+        oscillator.frequency.setValueAtTime(880, now); // A5
+        oscillator.frequency.linearRampToValueAtTime(1320, now + 0.1); // E6
+        oscillator.frequency.linearRampToValueAtTime(660, now + 0.3); // E5
+
+        // End the sound
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+
+        oscillator.start(now);
+        oscillator.stop(now + 0.5);
+    }
+
+    // --- Helper Functions ---
+
+    /**
+     * Updates the timer display (MM:SS format) and checks for completion.
+     */
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        timerDisplay.textContent = `${formattedMinutes}:${formattedSeconds}`;
+
+        if (remainingTime <= 0) {
+            clearInterval(timer);
+            isRunning = false;
+            
+            // Set buttons state
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            
+            // Play chime and show updated message
+            playChime();
+            statusMessage.textContent = "Enjoy Your Beer!"; // Updated message
+            statusMessage.classList.add('text-green-400'); // Highlight the final message
+            timerDisplay.classList.add('animate-pulse'); // Add visual cue
+        }
+    }
+
+    /**
+     * Starts the countdown timer.
+     */
+    function startTimer() {
+        if (isRunning) return;
+
+        isRunning = true;
+        startBtn.disabled = true;
+        resetBtn.disabled = false;
+        
+        // Clear previous state styles/messages
+        timerDisplay.classList.remove('animate-pulse');
+        statusMessage.classList.remove('text-green-400');
+        
+        statusMessage.textContent = "Timer is running...";
+        
+        // Initial call to set the display immediately
+        updateDisplay(); 
+
+        timer = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+        }, 1000);
+    }
+
+    /**
+     * Stops the timer and resets the state to initial values.
+     */
+    function resetTimer() {
+        clearInterval(timer);
+        isRunning = false;
+        remainingTime = TIME_LIMIT_SECONDS;
+
+        startBtn.disabled = false;
+        resetBtn.disabled = true;
+        
+        // Clear all state styles/messages
+        timerDisplay.classList.remove('animate-pulse');
+        statusMessage.classList.remove('text-green-400');
+        statusMessage.textContent = "";
+        updateDisplay(); 
+    }
+
+    // --- Initialization and Event Listeners ---
+    
+    // Set initial display
+    updateDisplay(); 
+
+    // Attach event listeners
+    startBtn.addEventListener('click', startTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
 </script>
 </body>
 </html>
-
